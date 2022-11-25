@@ -1,4 +1,5 @@
 from django.db import models
+from django.contrib.contenttypes.fields import GenericRelation
 # Create your models here.
 
 
@@ -14,5 +15,9 @@ class Studio(models.Model):
 
 class Amenity(models.Model):
     type = models.CharField(max_length=120)
+
     quantity = models.IntegerField()
-    studio = models.ForeignKey(Studio, on_delete=models.CASCADE)
+    studio = GenericRelation(Studio, on_delete=models.CASCADE)
+
+
+
