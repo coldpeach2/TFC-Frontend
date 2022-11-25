@@ -1,10 +1,9 @@
 from django.db import models
-from django.contrib.contenttypes.fields import GenericRelation
 # Create your models here.
 
 
 class Studio(models.Model):
-    name = models.CharField(max_length=120)
+    name = models.CharField(max_length=120, primary_key=True)
     address = models.CharField(max_length=120)
     lon = models.IntegerField()
     lat = models.IntegerField()
@@ -14,10 +13,7 @@ class Studio(models.Model):
 
 
 class Amenity(models.Model):
+    studio = models.ManyToManyField(Studio, related_name='studios_amenity')
     type = models.CharField(max_length=120)
-
     quantity = models.IntegerField()
-    studio = GenericRelation(Studio, on_delete=models.CASCADE)
-
-
 

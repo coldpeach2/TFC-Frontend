@@ -32,23 +32,18 @@ class ProfileViewSerializer(serializers.ModelSerializer):
         model = User
         fields = ('first_name', 'last_name', 'email', 'avatar', 'phone_num')
 
+
+class ProfileUpdateSerializer(serializers.ModelSerializer):
+        class Meta:
+            model = User
+            fields = ('first_name', 'last_name', 'email', 'avatar', 'phone_num')
+            
         def update(self, instance, validated_data):
             for key, value in validated_data.items():
                 if value:
                     setattr(instance, key, value)
             instance.save()
             return instance
-"""             instance.first_name = validated_data["first_name"]
-            instance.last_name = validated_data["last_name"]
-            if User.objects.filter(email=validated_data['email']).exists():
-                raise serializers.ValidationError({'email': 'Email is already in use.'})
-            else:
-                instance.email = validated_data["email"]
-            instance.avatar = validated_data["avatar"]
-            instance.phone_num = validated_data["phone_num"]
-            instance.save() """
-            
-
 
 class LoginSerializer(serializers.Serializer):
     email = serializers.CharField(label="email", write_only=True)

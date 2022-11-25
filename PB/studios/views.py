@@ -26,7 +26,7 @@ class StudioView(generic.DetailView):
     permission_classes = [IsAdminUser]
 
     def get_object(self, **kwargs):
-        studio_id = self.kwargs.get("id")
+        studio_id = self.kwargs.get("studio_id")
         return get_object_or_404(Studio, id=studio_id)
 
 
@@ -70,12 +70,15 @@ latitude = 25
 
 
 class ViewClosestStudiosView(generic.ListView):
+    permission_classes = [IsAuthenticated]
     model = Studio
     context_object_name = 'studios'
     #queryset = Studio.objects.annotate(distance=Distance('geolocation', user_location)).order_by('distance')[0:6]
 
 
 class ViewStudioView(generic.DetailView):
+    permission_classes = [IsAuthenticated]
     def get_object(self, **kwargs):
         studio_id = self.kwargs.get("studio_id")
         return get_object_or_404(Studio, id=studio_id)
+
