@@ -3,7 +3,7 @@ from rest_framework.generics import RetrieveAPIView, ListAPIView, CreateAPIView,
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.authentication import TokenAuthentication
-from accounts.serializers import RegistrationSerializer, ProfileViewSerializer, LoginSerializer
+from accounts.serializers import RegistrationSerializer, ProfileViewSerializer, LoginSerializer, ProfileUpdateSerializer
 from django.shortcuts import get_object_or_404
 from accounts.models import User
 from rest_framework.response import Response
@@ -13,7 +13,7 @@ from django.contrib.auth import get_user_model, authenticate, login, logout
 import rest_framework
 import rest_framework.decorators
 import django
-from rest_framework import viewsets as drf_viewsets
+from rest_framework import viewsets
 from rest_framework import mixins as drf_mixins
 from rest_framework.authtoken.serializers import AuthTokenSerializer
 import django
@@ -22,22 +22,19 @@ from rest_framework.authtoken.models import Token
 
 # Create your views here.
 
-class ProfileView(RetrieveUpdateAPIView):
+class ProfileView(RetrieveAPIView):
     serializer_class = ProfileViewSerializer
     permission_classes = [IsAuthenticated]
-    
+
     def get_object(self):
-        user = get_object_or_404(User, email=self.request.user)
-        serializer = ProfileViewSerializer(self.get_object(), data=data, partial=True)
-        content ={
-            "first_name":str(user.first_name),
-            "last_name":str(user.last_name),
-            "email":str(user.email),
-            "avatar":user.avatar,
-            "phone_num": str(user.phone_num)
-        }
-        return Response(data=content, status=status.HTTP_202_ACCEPTED)
-   
+        user = User.objects.get(email=self.request.user)
+        return user
+
+
+
+class ProfileUpdateView(UpdateAPIView):
+    serializer_class = ProfileUpdateSerializer
+    permission_classes = [IsAuthenticated]
     def update(self, request, *args, **kwargs):
         data = request.data
         serializer = ProfileViewSerializer(self.get_object(), data=data, partial=True)
@@ -50,8 +47,9 @@ class RegisterUserView(CreateAPIView):
     model = User
     queryset = User.objects.all()
     serializer_class = RegistrationSerializer
+    permission_classes = (permissions.AllowAny,)
     #authentication_classes = (TokenAuthentication,)
-    permission_classes = (IsCreationOrIsAuthenticated,)
+    #permission_classes = (IsCreationOrIsAuthenticated,)
     #Token.objects.create(user=user)
 
 
@@ -67,55 +65,26 @@ class LoginView(APIView):
         token, created = Token.objects.get_or_create(user=user)
         return Response({"token": token.key}, status=status.HTTP_202_ACCEPTED)
 
+class LogoutView(APIView):
+    permission_classes = [IsAuthenticated]
+    # def get(self, request):
+    #     user = self.request.user
+        
+    #     get_object_or_404(Token, user=self.request.user).delete()
+    #     return Response(status=status.HTTP_202_ACCEPTED) 
+    
+    # def post(self, request):
+    #     return self.logout(request)
 
-
-"""  def post(self, request:Request):
-        email = request.data.get('email')
-        password = request.data.get('password')
-
-        user=authenticate(email=email, password=password)
-        if user is not None:
-            response={
-                "message":"Login Successful",
-                "token":user.auth_token.key
-            }
-            return Response(data=response, status=status.HTTP_200_OK)
-        else:
-            return Response(data={"message":"Invalid email or password"})
-                def get(self, request):
-        user = request.user
-        content ={
-            "user":str(user),
-            "auth":str(request.auth)
-        }
-
-        return Response(data=content, status=status.HTTP_200_OK)
-
- """
-
-"""     @rest_framework.decorators.action(methods=["POST"], detail=False)
-    def login(self, request, format=None):
-     
-       # Obtain an authentication token by providing valid credentials.
-       
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        user = serializer.validated_data["user"]
-        token, created = rest_framework.authtoken.models.Token.objects.get_or_create(user=user)
-        return rest_framework.response.Response({"token": token.key})
-
-    @rest_framework.decorators.action(methods=["POST"], detail=False)
-    def logout(self, request, format=None):
-
-       #Invalidate the currently owned authentication token.
-
-        #**Permissions** :
-
-       # * _Authentication_ is required
-     
-        django.shortcuts.get_object_or_404(rest_framework.authtoken.models.Token, user=request.user).delete()
-        return rest_framework.response.Response(status=rest_framework.status.HTTP_202_ACCEPTED) 
+    def get(self, request, format=None):
+        # simply delete the token to force a login
+        request.user.auth_token.delete()
+        return Response(status=status.HTTP_200_OK)
 
 
 
-""" 
+
+""" As a user, I can enrol/drop a class (either one instance or all future occurrences) 
+that has not started yet and has not reached its capacity. 
+This can only happen if I have an active subscription.
+As a user, I want to see my class schedule and history in chronological order """ 
