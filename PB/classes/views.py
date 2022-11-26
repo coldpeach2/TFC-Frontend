@@ -9,7 +9,7 @@ from .serializers import ClassSerializer
 from django.shortcuts import get_object_or_404
 
 
-class CreateStudioView(CreateAPIView):
+class CreateClassView(CreateAPIView):
     permission_classes = [IsAdminUser]
 
     queryset = Class.objects.all()
@@ -18,7 +18,6 @@ class CreateStudioView(CreateAPIView):
     def perform_create(self, serializer):
         gym_class = get_object_or_404(Class, id=self.request.data.get('id'))
         return serializer.save(gym_class=gym_class)
-
 
 class ClassScheduleViewAPI(ListAPIView):
     """ As a user, I want to see the class schedule of a specific studio on its page.
