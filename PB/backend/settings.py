@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     'studios',
     'classes'
 ]
+SITE_ID = 1
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
