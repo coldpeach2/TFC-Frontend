@@ -1,6 +1,5 @@
 from django.db import models
-from django.contrib.contenttypes.fields import GenericRelation
-from PB.studios.models import Studio
+from studios.models import Studio
 
 
 class Class(models.Model):
@@ -9,12 +8,13 @@ class Class(models.Model):
         (1, 'Daily'),
         (2, 'Weekly'),
         (3, 'Biweekly'),
+        (4, 'Monthly')
     )
     name = models.CharField(max_length=120)
     description = models.CharField(max_length=120)
-    coach = models.CharField(max_Length=120)
+    coach = models.CharField(max_length=120)
     key_words = models.CharField(max_length=120)
     capacity = models.IntegerField()
     times = models.DateTimeField()
     frequency = models.IntegerField(choices=FREQ_CHOICES)
-    studio = GenericRelation(Studio, on_delete=models.CASCADE)
+    studio = models.ManyToManyField(Studio)
