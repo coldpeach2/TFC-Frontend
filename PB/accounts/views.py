@@ -21,7 +21,13 @@ from accounts.permissions import IsCreationOrIsAuthenticated
 from rest_framework.authtoken.models import Token
 
 # Create your views here.
+""" class ProfileView(viewsets.ModelViewSet):
+    def retrieve(self):
+        user = User.objects.get(email=self.request.user)
+        return user
 
+
+ """
 class ProfileView(RetrieveAPIView):
     serializer_class = ProfileViewSerializer
     permission_classes = [IsAuthenticated]
@@ -29,7 +35,6 @@ class ProfileView(RetrieveAPIView):
     def get_object(self):
         user = User.objects.get(email=self.request.user)
         return user
-
 
 
 class ProfileUpdateView(UpdateAPIView):
@@ -80,6 +85,7 @@ class LogoutView(APIView):
         # simply delete the token to force a login
         request.user.auth_token.delete()
         return Response(status=status.HTTP_200_OK)
+
 
 
 

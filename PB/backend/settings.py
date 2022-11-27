@@ -35,13 +35,13 @@ INSTALLED_APPS = [
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
+    'django.contrib.gis',
     'django.contrib.staticfiles',
-    'django.contrib.sites',
+    'django.contrib.gis.db.backends.postgis',
     'rest_framework',
     'rest_framework.authtoken',
     'accounts',
     'studios',
-    'classes'
 ]
 
 MIDDLEWARE = [
@@ -82,6 +82,10 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': BASE_DIR / 'db.sqlite3',
+    },
+    'location': {
+        'ENGINE': 'django.contrib.gis.db.backends.postgis',
+        'NAME': 'location_data'
     }
 }
 

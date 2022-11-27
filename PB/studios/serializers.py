@@ -1,6 +1,8 @@
 from rest_framework import serializers
-from .models import Studio, Amenity
+from .models import Studio, Amenity, Classes
+from accounts.models import User
 import re
+import json
 
 
 class StudioCreateSerializer(serializers.ModelSerializer):
@@ -45,3 +47,32 @@ class AmenitySerializer(serializers.ModelSerializer):
 
         amenity.save()
         return amenity
+
+class UserLocationSerializer(serializers.ModelSerializer):
+    #user_loc = serializers.SerializerMethodField()
+    class Meta:
+        model = User
+        fields = ('email', 'lon', 'lat', 'user_loc')
+    
+    def get_user_loc(self, obj):
+        point = obj.user_loc()
+        #print(point)
+        return point
+
+class StudiosForUserSerializer(serializers.ModelSerializer):
+    #studio_loc = serializers.SerializerMethodField()
+    class Meta:
+        model = Studio
+        fields = ('name', 'address', 'postal_code', 'phone_num', 'images', 'lon', 'lat')
+    
+"""     def get_studio_loc(self, obj):
+        point = obj.studio_loc()
+        #print(point)
+        return point """
+
+
+class ClassScheduleSerializer(serializers.ModelSerializer):
+    #studio_id = serializers.PrimaryKeyRelatedField(many=True, read_only=True)
+    class Meta:
+        model = Classes
+        fields = ('id', 'name', 'description', 'coach', 'keywords', 'capacity', 'times')
