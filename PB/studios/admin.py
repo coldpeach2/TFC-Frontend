@@ -1,9 +1,7 @@
 from django.contrib import admin
-from .models import Studio, Classes
+from .models import Studio, Classes, Amenity
 # Register your models here.
 
 admin.site.register(Studio)
-
-# Register your models here.
-
+admin.site.register(Amenity)
 admin.site.register(Classes)
