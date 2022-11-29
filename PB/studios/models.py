@@ -1,7 +1,11 @@
+from datetime import date
+
 from django.core.validators import RegexValidator
 from django.db import models
 from accounts.models import User
 from django.contrib.gis.geos import Point
+from django.utils import timezone
+
 from datetime import date
 # Create your models here.
 
@@ -47,9 +51,9 @@ class Classes(models.Model):
     keywords = models.CharField(max_length=120)
     capacity = models.PositiveIntegerField()
     frequency = models.IntegerField(choices=FREQUENCY, null=True)
-    start_date = models.DateField(default=date.today)
-    start_time = models.CharField(max_length=120)
-    end_time = models.CharField(max_length=120)
+    start_date = models.DateField(default=timezone.now(), null=True)
+    start_time = models.CharField(max_length=120, null=True)
+    end_time = models.CharField(max_length=120, null=True)
     cancelled_date = models.DateField(blank=True, null=True)
     enrolled = models.ManyToManyField(User)
 

@@ -70,3 +70,15 @@ class ClassScheduleSerializer(serializers.ModelSerializer):
     class Meta:
         model = Classes
         fields = ('id', 'name', 'description', 'coach', 'keywords', 'capacity', 'times')
+
+
+class StudioSearchSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Studio
+        fields = '__all__'
+
+
+class ClassSearchSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Studio
+        fields = '__all__'
