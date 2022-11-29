@@ -69,8 +69,8 @@ class UserStudioSearch(generics.ListCreateAPIView):
 
     permission_classes = [IsAuthenticated]
 
-    search_fields = ['name', 'classes__name', 'classes__coaches', 'amenity__type']
-    filter_backends = filters.SearchFilter
+    search_fields = ['name', 'classes__name', 'classes__coach', 'amenity__type']
+    filter_backends = (filters.SearchFilter,)
     queryset = Studio.objects.all()
     serializer_class = StudioSearchSerializer
 
@@ -82,7 +82,7 @@ class UserClassSearch(generics.ListCreateAPIView):
     permission_classes = [IsAuthenticated]
 
     search_fields = ['name', 'coach', 'start_date', 'start_time', 'end_time']
-    filter_backends = filters.SearchFilter
+    filter_backends = (filters.SearchFilter,)
     queryset = Classes.objects.all()
     serializer_class = ClassSearchSerializer
 
