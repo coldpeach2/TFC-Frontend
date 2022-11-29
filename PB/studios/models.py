@@ -1,3 +1,5 @@
+from datetime import date
+
 from django.core.validators import RegexValidator
 from django.db import models
 from accounts.models import User
@@ -45,8 +47,8 @@ class Classes(models.Model):
     coach = models.CharField(max_length=120)
     keywords = models.CharField(max_length=120)
     capacity = models.PositiveIntegerField()
-    frequency = models.IntegerField(choices=FREQUENCY)
-    start_date = models.DateField()
+    frequency = models.IntegerField(choices=FREQUENCY, null=True)
+    start_date = models.DateField(default=date.today())
     start_time = models.CharField(max_length=120)
     end_time = models.CharField(max_length=120)
     cancelled_date = models.DateField(blank=True, null=True)

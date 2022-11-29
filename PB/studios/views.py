@@ -7,9 +7,11 @@ from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework import generics, status
-from .serializers import ClassScheduleSerializer, StudiosForUserSerializer
+from .serializers import ClassScheduleSerializer, StudiosForUserSerializer, StudioSearchSerializer, \
+    ClassSearchSerializer
 from django.shortcuts import get_object_or_404
 from django.contrib.gis.geos import Point
+from rest_framework import filters
 from django.contrib.gis.db.models.functions import Distance
 # Create your views here.
 
@@ -59,4 +61,31 @@ class StudioClassScheduleView(ListAPIView):
         queryset = Classes.objects.filter(studio=studio)
         print(queryset.values())
         return queryset.values()
+
+
+class UserStudioSearch(generics.ListCreateAPIView):
+    """As a user, I want to search/filter through the listed studios (mentioned earlier). Search/filter includes
+    stdio name, amenities, class names, and coaches that hold classes in those studios."""
+
+    permission_classes = [IsAuthenticated]
+
+    search_fields = ['name', 'classes__name', 'classes__coaches', 'amenity__type']
+    filter_backends = filters.SearchFilter
+    queryset = Studio.objects.all()
+    serializer_class = StudioSearchSerializer
+
+
+class UserClassSearch(generics.ListCreateAPIView):
+    """As a user, I want to search/filter a studio's class schedule.
+    The search/filter can be based on the class name, coach name, date, and time range."""
+
+    permission_classes = [IsAuthenticated]
+
+    search_fields = ['name', 'coach', 'start_date', 'start_time', 'end_time']
+    filter_backends = filters.SearchFilter
+    queryset = Classes.objects.all()
+    serializer_class = ClassSearchSerializer
+
+
+
 
