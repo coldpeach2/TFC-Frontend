@@ -64,3 +64,11 @@ class LoginSerializer(serializers.Serializer):
         # It will be used in the view.
         attrs['user'] = user
         return attrs
+
+
+class ActivateUserSubscriptionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = '__all__'
+
+    

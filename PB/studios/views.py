@@ -58,7 +58,7 @@ class StudioClassScheduleView(ListAPIView):
     def get_queryset(self):
         studio_id = self.kwargs.get("id")
         studio = get_object_or_404(Studio, studios_classes=studio_id)
-        queryset = Classes.objects.filter(studio=studio)
+        queryset = Classes.objects.filter(studio=studio).order_by('times')
         print(queryset.values())
         return queryset.values()
 

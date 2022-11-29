@@ -87,6 +87,14 @@ class LogoutView(APIView):
         return Response(status=status.HTTP_200_OK)
 
 
+class ActivateUserSubscriptionView(CreateAPIView):
+    permission_classes = [IsAuthenticated]
+    model = User
+    queryset = User.objects.all()
+    #serializer_class = ActivateUserSubscriptionSerializer
+
+class UserSubscriptionView(RetrieveUpdateAPIView):
+    permission_classes = [IsAuthenticated]
 
 
 
