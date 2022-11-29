@@ -1,7 +1,7 @@
 from django.urls import path, include
 from django.views.generic import RedirectView
 from rest_framework import routers
-from .views import ProfileView, RegisterUserView, LoginView, LogoutView
+from .views import ProfileView, RegisterUserView, LoginView, LogoutView, ActivateUserSubscriptionView
 
 
 app_name = 'accounts'
@@ -16,4 +16,5 @@ urlpatterns = [
     #path('profile/update/', UpdateProfileView.as_view()),
     path('login/', LoginView.as_view()),
     path('logout/', LogoutView.as_view()),
+    path('subscribe/', ActivateUserSubscriptionView.as_view())
 ] 

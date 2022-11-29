@@ -1,5 +1,6 @@
 from rest_framework import serializers
-from accounts.models import User
+from accounts.models import User, UserSubscription, SubscriptionPlan
+from rest_framework.fields import ChoiceField
 from rest_framework.authtoken.models import Token
 from django.contrib.auth import authenticate
 
@@ -66,9 +67,35 @@ class LoginSerializer(serializers.Serializer):
         return attrs
 
 
-class ActivateUserSubscriptionSerializer(serializers.ModelSerializer):
+class SubscriptionPlanSerializer(serializers.ModelSerializer):
     class Meta:
-        model = User
+        model = SubscriptionPlan
         fields = '__all__'
+
+class ActivateUserSubscriptionSerializer(serializers.ModelSerializer):
+    subscription_plan = ChoiceField(choices=SubscriptionPlan.PLANS)
+    class Meta:
+        model = UserSubscription
+        fields = ('subscription_plan', 'card_info')
+
+    def create(self, validated_data): 
+        #sub_plan = SubscriptionPlan(subscription_choices=self.validated_data['subscription_plan'])
+        #sub_plan.save()
+        plan = UserSubscription.objects.create(user=self.context['request'].user, subscription_plan=self.context['request'].subscription_plan, card_info=validated_data['card_info'])
+        return plan
+
+        #subscription_plan = SubscriptionPlan(subscription_choices=self.validated_data['subscription_plan'])
+        #subscription_plan.save()
+        #print(self.context['request'].data.subscription_plan)
+        #subscription = UserSubscription(user=self.context['request'].user, subscription_plan=self.context['request'].subscription_plan, card_info=validated_data['card_info'])
+        #subscription.save()
+        #return subscription
+
+
+class ActivateReadSearializer(serializers.ModelSerializer):
+    subscription_plan = serializers.ReadOnlyField(source='subscriptionplan.subscription_choices')
+    class Meta:
+        model = UserSubscription
+        fields = ('subscription_plan', 'card_info')
 
     

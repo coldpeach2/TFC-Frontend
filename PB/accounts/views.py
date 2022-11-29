@@ -3,9 +3,9 @@ from rest_framework.generics import RetrieveAPIView, ListAPIView, CreateAPIView,
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.authentication import TokenAuthentication
-from accounts.serializers import RegistrationSerializer, ProfileViewSerializer, LoginSerializer, ProfileUpdateSerializer
+from accounts.serializers import RegistrationSerializer, ProfileViewSerializer, LoginSerializer, ProfileUpdateSerializer, ActivateUserSubscriptionSerializer, SubscriptionPlanSerializer, ActivateReadSearializer
 from django.shortcuts import get_object_or_404
-from accounts.models import User
+from accounts.models import User, UserSubscription, Subscription, SubscriptionPlan
 from rest_framework.response import Response
 from rest_framework.request import Request
 from rest_framework import status, permissions
@@ -89,9 +89,39 @@ class LogoutView(APIView):
 
 class ActivateUserSubscriptionView(CreateAPIView):
     permission_classes = [IsAuthenticated]
-    model = User
-    queryset = User.objects.all()
-    #serializer_class = ActivateUserSubscriptionSerializer
+    serializer_class = ActivateUserSubscriptionSerializer
+    model = UserSubscription
+
+    def perform_create(self, serializer):
+        print(self.request.data)
+        print(serializer)
+        #print(self.serializer_class.data)
+        #subscription_choice = SubscriptionPlan(subscription_choices=self.request.data['subscription_plan'])
+        #choice = serializer.save(user=self.request.user)
+        #print(choice)
+        #choice.subscription_plan = subscription_choice
+        #print(choice)
+        #choice.save()
+        #print(subscription_choice)
+        #subscription_serializer = SubscriptionPlanSerializer(data=subscription_choice)
+        #print(subscription_serializer, subscription_plan=subscription_choice)
+
+        #selected_choice = self.request.data['subscription_plan']
+        #subscription_plan = SubscriptionPlan.objects.create(subscription_choices=selected_choice)
+        #print(subscription_plan)
+        # subscription_serializer = SubscriptionPlanSerializer(data=subscription_plan)
+        # print(subscription_serializer)
+        # print(self.request.user)
+        #sub_plan = self.request.data['subscription_plan']
+        #plan = SubscriptionPlan.objects.create(subscription_choices = sub_plan)
+        #plan_serializer = ActivateReadSearializer(instance=plan)
+        #serializer.subscription_plan = plan
+        #print(plan_serializer)
+        #plan_serializer.save()
+        serializer.save()
+        #serializer.save(user=self.request.user, subscription_plan=plan)
+
+
 
 class UserSubscriptionView(RetrieveUpdateAPIView):
     permission_classes = [IsAuthenticated]
