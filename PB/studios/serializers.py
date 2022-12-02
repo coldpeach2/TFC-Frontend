@@ -82,3 +82,4 @@ class ClassSearchSerializer(serializers.ModelSerializer):
     class Meta:
         model = Classes
         fields = '__all__'
+

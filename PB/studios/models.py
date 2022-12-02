@@ -44,6 +44,7 @@ class Classes(models.Model):
                  (2, "Weekly"),
                  (3, "Monthly"),
                  }
+
     studio = models.ManyToManyField(Studio, related_name='studios_classes')
     name = models.CharField(max_length=120)
     description = models.CharField(max_length=120)

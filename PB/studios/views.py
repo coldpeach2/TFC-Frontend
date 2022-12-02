@@ -1,8 +1,8 @@
 from django.shortcuts import render
 from django.views import generic
-from rest_framework.generics import CreateAPIView, ListAPIView
+from rest_framework.generics import CreateAPIView, ListAPIView, RetrieveUpdateAPIView, ListCreateAPIView
 from .models import Studio, Amenity, Classes
-from accounts.models import User
+from accounts.models import User, UserSubscription
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -59,7 +59,7 @@ class StudioClassScheduleView(ListAPIView):
         studio_id = self.kwargs.get("id")
         studio = get_object_or_404(Studio, studios_classes=studio_id)
         queryset = Classes.objects.filter(studio=studio).order_by('times')
-        print(queryset.values())
+        #print(queryset.values())
         return queryset.values()
 
 
@@ -86,6 +86,49 @@ class UserClassSearch(generics.ListCreateAPIView):
     queryset = Classes.objects.all()
     serializer_class = ClassSearchSerializer
 
+
+class EnrolUserView(RetrieveUpdateAPIView):
+    permission_classes = [IsAuthenticated]
+    # search_fields = ['name', 'coach', 'start_date', 'start_time', 'end_time']
+    # filter_backends = (filters.SearchFilter,)
+    # serializer_class = ClassSearchSerializer
+
+    def get_queryset(self):
+        studio_id = self.kwargs.get("id")
+        studio = get_object_or_404(Studio, studios_classes=studio_id)
+        queryset = Classes.objects.filter(studio=studio).order_by('times')
+        return queryset
+
+    def get_object(self):
+        name = ... ###please help
+        class_obj = Classes.objects.get(name=name)
+        user = self.request.user
+        subscription = UserSubscription.objects.filter(user=user)
+        is_active = getattr(subscription, 'active')
+
+        if class_obj.enrolled + 1 <= class_obj.capacity:
+            if is_active:
+                class_obj.enrolled.add(user)
+                return "Enrolled"
+            else:
+                return "Must be subscribed"
+        else:
+            return "Class full"
+
+
+class UserScheduleView(ListAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = ClassScheduleSerializer
+
+    def get_queryset(self):
+        user = self.request.user
+        user_classes = []
+
+        for class_obj in Classes.objects.all():
+            if class_obj.enrolled.filter(user) is not None:
+                user_classes.append(class_obj)
+
+        return user_classes
 
 
 
