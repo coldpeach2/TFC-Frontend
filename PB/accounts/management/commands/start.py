@@ -4,5 +4,5 @@ class Command(BaseCommand):
      help = 'Startup'
      def handle(self, *args, **kwargs):
         subprocess.call(['sh', '/Users/areej/CSC309-Fall2022/group_9543/PB/startup.sh'])
-        subprocess.call(['sh', '/Users/areej/CSC309-Fall2022/group_9543/PB/run.sh'])
+        #subprocess.call(['sh', '/Users/areej/CSC309-Fall2022/group_9543/PB/run.sh'])
 
