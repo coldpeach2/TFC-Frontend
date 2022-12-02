@@ -80,10 +80,10 @@ class ActivateUserSubscriptionSerializer(serializers.ModelSerializer):
             return attrs
         else:
             user = self.context['request'].user
-            plan = UserSubscription.objects.get(user=user)
-            sub = plan.subscription_plan
-            if sub.subscription_choices != 'Free':
-                raise serializers.ValidationError("You already have an active subscription!")
+            if UserSubscription.objects.filter(user=user).exists():
+                sub = UserSubscription.objects.get(user=user).subscription_plan
+                if sub.subscription_choices != 'Free':
+                    raise serializers.ValidationError("You already have an active subscription!")
         return attrs
         
     def create(self, validated_data): 

@@ -90,11 +90,11 @@ class UserSubscription(models.Model):
         if sub_plan == '14.99/month':
             price = decimal.Decimal(14.99)
             frequency = 30
-            self._amount_paid = self.amount_paid + price
+            self._amount_paid = decimal.Decimal(self.amount_paid) + price
         else: 
             price = decimal.Decimal(149.99)
             frequency = 365
-            self._amount_paid = self.amount_paid + price
+            self._amount_paid = decimal.Decimal(self.amount_paid) + price
         self._next_payment = date_started + timedelta(days=frequency)
         paid = getattr(self, '_amount_paid')
         next_pay = getattr(self, '_next_payment')
