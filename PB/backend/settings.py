@@ -84,10 +84,10 @@ DATABASES = {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': BASE_DIR / 'db.sqlite3',
     },
-    'location': {
-        'ENGINE': 'django.contrib.gis.db.backends.postgis',
-        'NAME': 'location_data'
-    }
+    # 'location': {
+    #     'ENGINE': 'django.contrib.gis.db.backends.postgis',
+    #     'NAME': 'location_data'
+    # }
 }
 
 

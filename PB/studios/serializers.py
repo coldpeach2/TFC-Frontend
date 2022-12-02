@@ -1,6 +1,5 @@
 from rest_framework import serializers
 from .models import Studio, Amenity, Classes
-from accounts.models import User
 import re
 import json
 
@@ -87,10 +86,6 @@ class ClassSearchSerializer(serializers.ModelSerializer):
 class ClassEnrolSerializer(serializers.ModelSerializer):
     class Meta:
         model = Classes
-        fields = ('name', 'start_time')
-
-        def update(self, instance, validated_data):
-            curr_class = Classes.objects.get(name=validated_data['name'])
-            curr_user = self.context.request.user
+        fields = ('id', 'name', 'start_time', 'enrolled')
 
 

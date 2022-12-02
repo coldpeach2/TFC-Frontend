@@ -1,6 +1,7 @@
 from django.shortcuts import render
 from django.views import generic
-from rest_framework.generics import CreateAPIView, ListAPIView, RetrieveUpdateAPIView, ListCreateAPIView
+from rest_framework.generics import CreateAPIView, ListAPIView, RetrieveUpdateAPIView, ListCreateAPIView, \
+    RetrieveAPIView
 from .models import Studio, Amenity, Classes
 from accounts.models import User, UserSubscription
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
@@ -87,41 +88,55 @@ class UserClassSearch(generics.ListAPIView):
     serializer_class = ClassSearchSerializer
 
 
-class EnrolUserView(RetrieveUpdateAPIView):
+class EnrolUserView(RetrieveAPIView):
     permission_classes = [IsAuthenticated]
     # search_fields = ['name', 'coach', 'start_date', 'start_time', 'end_time']
     # filter_backends = (filters.SearchFilter,)
     serializer_class = ClassEnrolSerializer
 
-    def get_queryset(self):
-        studio_id = self.kwargs.get("studio_id")
-        studio = get_object_or_404(Studio, studios_classes=studio_id)
-        queryset = Classes.objects.filter(studio=studio).order_by('start_time')
-        return queryset
+    def get_object(self):
+        user = self.request.user
+        class_id = self.kwargs.get("class_id")
+        class_to_enrol = get_object_or_404(Classes, id=class_id)
+        if UserSubscription.objects.get(user=user) is not None and getattr(UserSubscription.objects.get(user=user),
+                                                                           'active') is True:
+            if user in class_to_enrol.enrolled.all():
+                print("Already Enrolled")
+                return class_to_enrol
+            elif class_to_enrol.capacity >= class_to_enrol.curr_enrolled + 1:
+                Classes.objects.filter(id=class_id).update(curr_enrolled=class_to_enrol.curr_enrolled + 1)
+                class_to_enrol.enrolled.add(user)
+                return class_to_enrol
+            else:
+                print("Class full")
+                RaiseException()
+        else:
+            print('Must be subscribed')
+            return class_to_enrol
 
-    def update(self):
-
-        serializer = self.serializer_class()
-        if serializer.is_valid():
-            self.perform_update()
-        # class_id = self.kwargs.get("class_id")
-        # class_obj = Classes.objects.get(id=class_id)
-        # user = self.request.user
-        # try:
-        #     subscription = UserSubscription.objects.get(user=user)
-        #     is_active = getattr(subscription, 'active')
-        # except:
-        #     print("Must be subscribed")
-        #     return
-        #
-        # if len(class_obj.enrolled) + 1 <= class_obj.capacity:
-        #
-        #     class_obj.enrolled.add(user)
-        #     print("Enrolled")
-        #     return
-        # else:
-        #     print("Class full")
-        #     return
+    # def update(self):
+    #     serializer = self.serializer_class()
+    #     if serializer.is_valid():
+    #         self.perform_update()
+    #     class_id = self.kwargs.get("class_id")
+    #     class_obj = Classes.objects.get(id=class_id)
+    #     user = self.request.user
+    #     try:
+    #         subscription = UserSubscription.objects.get(user=user)
+    #         is_active = getattr(subscription, 'active')
+    #     except:
+    #         print("Must be subscribed")
+    #         return
+    #
+    #     if len(class_obj.enrolled) + 1 <= class_obj.capacity:
+    #
+    #         class_obj.enrolled.add(user)
+    #         class_obj._curr_enrolled += 1
+    #         print("Enrolled")
+    #         return
+    #     else:
+    #         print("Class full")
+    #         return
 
 
 class UserScheduleView(ListAPIView):

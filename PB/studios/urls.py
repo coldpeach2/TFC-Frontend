@@ -10,6 +10,6 @@ urlpatterns = [
     path('<int:id>/classes/', StudioClassScheduleView.as_view()),
     path('studio/search/', UserStudioSearch.as_view()),
     path('classes/search/', UserClassSearch.as_view()),
-    path('<int:studio_id>/<int:class_id>/enrol/', EnrolUserView.as_view()),
+    path('<int:class_id>/enrol/', EnrolUserView.as_view()),
     path('my_schedule/', UserScheduleView.as_view()),
 ]

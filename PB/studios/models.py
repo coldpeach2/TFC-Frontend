@@ -23,7 +23,7 @@ class Studio(models.Model):
                                  message="Phone number must be entered in the format: "
                                          "'+111111111 or 111-111-1111 (+ optional)'. Up to 10 digits allowed.")
     phone_num = models.CharField(validators=[phone_regex], max_length=15)
-    images = models.ImageField(upload_to='studios', null=True)
+    images = models.ImageField(upload_to='studios', null=True, blank=True)
 
     # @property
     # def studio_loc(self):
@@ -56,9 +56,14 @@ class Classes(models.Model):
     start_time = models.CharField(max_length=120, null=True)
     end_time = models.CharField(max_length=120, null=True)
     cancelled_date = models.DateTimeField(auto_now_add=False, null=True, blank=True)
-    enrolled = models.ManyToManyField(User, related_name='users', blank=True)
+    enrolled = models.ManyToManyField(User, related_name='enrolled_users', blank=True)
+    curr_enrolled = models.PositiveIntegerField(default=0, null=True)
 
     @property
     def is_cancelled(self):
         return self.cancelled_date is not None
+
+    @property
+    def is_full(self):
+        return self._curr_enrolled + 1 <= self.capacity
 

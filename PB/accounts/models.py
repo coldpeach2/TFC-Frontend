@@ -1,7 +1,7 @@
 from datetime import timezone
 from django.db import models
 from django.contrib.auth.models import AbstractUser, BaseUserManager
-from django.contrib.gis.geos import Point
+#from django.contrib.gis.geos import Point
 import datetime
 from datetime import timedelta
 import decimal
@@ -40,10 +40,10 @@ class User(AbstractUser):
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = []
 
-    @property
-    def user_loc(self):
-        user_loc = Point(self.lon, self.lat, srid=4326)
-        return user_loc
+    # @property
+    # def user_loc(self):
+    #     user_loc = Point(self.lon, self.lat, srid=4326)
+    #     return user_loc
 
 
 class SubscriptionPlan(models.Model):
