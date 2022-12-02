@@ -17,7 +17,6 @@ from rest_framework import viewsets
 from rest_framework import mixins as drf_mixins
 from rest_framework.authtoken.serializers import AuthTokenSerializer
 import django
-from accounts.permissions import IsCreationOrIsAuthenticated
 from rest_framework.authtoken.models import Token
 
 # Create your views here.
@@ -115,5 +114,4 @@ class PaymentHistoryView(ListAPIView):
         user_subscription = UserSubscription.objects.get(user=user)
         print(user_subscription.id)
         payments = PaymentHistory.objects.filter(user_id=user_subscription.id)
-        print(payments.values())
         return payments

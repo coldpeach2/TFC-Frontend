@@ -75,15 +75,16 @@ class ActivateUserSubscriptionSerializer(serializers.ModelSerializer):
         model = UserSubscription
         fields = ('subscription_plan', 'card_info')
         
-    # def validate(self, attrs):
-    #     if self.context['request'].method == 'PUT':
-    #         return attrs
-    #     else:
-    #         user = self.context['request'].user
-    #         plan = UserSubscription.objects.filter(user=user)
-    #         if plan.exists():
-    #             raise serializers.ValidationError("You already have an active subscription!")
-    #     return attrs
+    def validate(self, attrs):
+        if self.context['request'].method == 'PUT':
+            return attrs
+        else:
+            user = self.context['request'].user
+            plan = UserSubscription.objects.get(user=user)
+            sub = plan.subscription_plan
+            if sub.subscription_choices != 'Free':
+                raise serializers.ValidationError("You already have an active subscription!")
+        return attrs
         
     def create(self, validated_data): 
         sub_choice = self.validated_data['subscription_plan']
@@ -102,19 +103,17 @@ class ActivateUserSubscriptionSerializer(serializers.ModelSerializer):
 
     def update(self, instance, validated_data):
         for key, value in validated_data.items():
-            print(key, value)
+            print(instance.subscription_plan.subscription_choices)
             if key == 'card_info':
                 setattr(instance, key, value)
             if key == 'subscription_plan' and value:
                 if value['subscription_choices'] == 'Free':
-                    sub = UserSubscription.objects.filter(user=self.context['request'].user)
-                    #sub[0].subscription_choices = 'Free'
-                    return instance
+                    instance.subscription_plan =  SubscriptionPlan.objects.create(subscription_choices = 'Free')
+                    instance.deactivate
                 else:
-                    new_plan = SubscriptionPlan.objects.create(subscription_choices = value['subscription_choices'])
-                    new_subscription = UserSubscription.objects.create(user=self.context['request'].user, subscription_plan=new_plan, card_info=validated_data['card_info'])
-                    new_subscription.activate
-                    self.make_first_payment(new_subscription)
+                    instance.subscription_plan = SubscriptionPlan.objects.create(subscription_choices = value['subscription_choices'])
+                    instance.activate
+                    self.make_first_payment(instance)
         instance.save()
         return instance    
 
@@ -122,3 +121,6 @@ class PaymentHistorySerializer(serializers.ModelSerializer):
     class Meta:
         model = PaymentHistory
         fields = '__all__'
+
+
+

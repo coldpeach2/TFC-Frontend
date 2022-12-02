@@ -4,6 +4,7 @@ from django.contrib.auth.models import AbstractUser, BaseUserManager
 from django.contrib.gis.geos import Point
 import datetime
 from datetime import timedelta
+import decimal
 from django.utils.dateparse import parse_datetime
 # Create your models here.
 
@@ -63,6 +64,7 @@ class UserSubscription(models.Model):
     active = models.BooleanField(default=False)
     start_date = models.DateTimeField(auto_now_add=False, null=True)
     _next_payment = models.DateTimeField(auto_now_add=False, null=True)
+    end_date = models.DateTimeField(auto_now_add=False, null=True)
 
     @property
     def activate(self):
@@ -71,18 +73,26 @@ class UserSubscription(models.Model):
         self.save(update_fields=['active', 'start_date'])
         return self.start_date 
 
+    @property
+    def deactivate(self):
+        self.active = False
+        self.end_date = datetime.datetime.now()
+        self.save(update_fields=['active', 'end_date'])
+        return self.active
+
     def make_payment(self):
-        field_value = getattr(self, 'subscription_plan')
-        sub = getattr(field_value, 'subscription_choices')
-        sub_plan = sub['subscription_choices']
+        #field_value = getattr(self, 'subscription_plan')
+        #sub = getattr(field_value, 'subscription_choices')
+        #sub_plan = sub['subscription_choices']
+        sub_plan = self.subscription_plan.subscription_choices
         date_str = getattr(self, 'start_date')
         date_started = parse_datetime(str(date_str))
         if sub_plan == '14.99/month':
-            price = 14.99
+            price = decimal.Decimal(14.99)
             frequency = 30
             self._amount_paid = self.amount_paid + price
         else: 
-            price = 149.99
+            price = decimal.Decimal(149.99)
             frequency = 365
             self._amount_paid = self.amount_paid + price
         self._next_payment = date_started + timedelta(days=frequency)
