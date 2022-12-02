@@ -28,11 +28,11 @@ class StudiosForUserView(ListAPIView):
         point_set = []
 
         for studio in Studio.objects.all():
-            point = Point(studio.lon, studio.lat, srid=4326)
+            point = (studio.lon, studio.lat)
             studio_key[studio] = point
             point_set.append(point)
 
-        point_set.sort(key=lambda p: (p.x - lon)**2 + (p.y - lat)**2)
+        point_set.sort(key=lambda p: (p[0] - lon)**2 + (p[1] - lat)**2)
 
         closest_studios = []
 
@@ -63,7 +63,7 @@ class StudioClassScheduleView(ListAPIView):
         return queryset.values()
 
 
-class UserStudioSearch(generics.ListCreateAPIView):
+class UserStudioSearch(generics.ListAPIView):
     """As a user, I want to search/filter through the listed studios (mentioned earlier). Search/filter includes
     stdio name, amenities, class names, and coaches that hold classes in those studios."""
 
@@ -75,7 +75,7 @@ class UserStudioSearch(generics.ListCreateAPIView):
     serializer_class = StudioSearchSerializer
 
 
-class UserClassSearch(generics.ListCreateAPIView):
+class UserClassSearch(generics.ListAPIView):
     """As a user, I want to search/filter a studio's class schedule.
     The search/filter can be based on the class name, coach name, date, and time range."""
 
@@ -87,7 +87,7 @@ class UserClassSearch(generics.ListCreateAPIView):
     serializer_class = ClassSearchSerializer
 
 
-class EnrolUserView(ListAPIView):
+class EnrolUserView(RetrieveUpdateAPIView):
     permission_classes = [IsAuthenticated]
     # search_fields = ['name', 'coach', 'start_date', 'start_time', 'end_time']
     # filter_backends = (filters.SearchFilter,)
@@ -99,28 +99,29 @@ class EnrolUserView(ListAPIView):
         queryset = Classes.objects.filter(studio=studio).order_by('start_time')
         return queryset
 
-    def patch(self):
-        class_id = self.kwargs.get("class_id")
-        class_obj = Classes.objects.get(id=class_id)
-        user = self.request.user
-        try:
-            subscription = UserSubscription.objects.get(user=user)
-            is_active = getattr(subscription, 'active')
-        except:
-            print("Must be subscribed")
-            return
+    def update(self):
 
-        if class_obj.enrolled + 1 <= class_obj.capacity:
-            if is_active:
-                class_obj.enrolled.add(user)
-                print("Enrolled")
-                return
-            else:
-                print("Must be subscribed")
-                return
-        else:
-            print("Class full")
-            return
+        serializer = self.serializer_class()
+        if serializer.is_valid():
+            self.perform_update()
+        # class_id = self.kwargs.get("class_id")
+        # class_obj = Classes.objects.get(id=class_id)
+        # user = self.request.user
+        # try:
+        #     subscription = UserSubscription.objects.get(user=user)
+        #     is_active = getattr(subscription, 'active')
+        # except:
+        #     print("Must be subscribed")
+        #     return
+        #
+        # if len(class_obj.enrolled) + 1 <= class_obj.capacity:
+        #
+        #     class_obj.enrolled.add(user)
+        #     print("Enrolled")
+        #     return
+        # else:
+        #     print("Class full")
+        #     return
 
 
 class UserScheduleView(ListAPIView):

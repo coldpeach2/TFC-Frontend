@@ -89,3 +89,8 @@ class ClassEnrolSerializer(serializers.ModelSerializer):
         model = Classes
         fields = ('name', 'start_time')
 
+        def update(self, instance, validated_data):
+            curr_class = Classes.objects.get(name=validated_data['name'])
+            curr_user = self.context.request.user
+
+

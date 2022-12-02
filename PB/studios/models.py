@@ -3,7 +3,7 @@ from datetime import date
 from django.core.validators import RegexValidator
 from django.db import models
 from accounts.models import User
-from django.contrib.gis.geos import Point
+# from django.contrib.gis.geos import Point
 from django.utils import timezone
 
 from datetime import date
@@ -25,10 +25,10 @@ class Studio(models.Model):
     phone_num = models.CharField(validators=[phone_regex], max_length=15)
     images = models.ImageField(upload_to='studios', null=True)
 
-    @property
-    def studio_loc(self):
-        studio_loc = Point(self.lon, self.lat, srid=4326)
-        return studio_loc
+    # @property
+    # def studio_loc(self):
+    #     studio_loc = Point(self.lon, self.lat, srid=4326)
+    #     return studio_loc
 
 
 class Amenity(models.Model):
