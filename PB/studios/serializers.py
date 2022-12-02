@@ -86,6 +86,6 @@ class ClassSearchSerializer(serializers.ModelSerializer):
 class ClassEnrolSerializer(serializers.ModelSerializer):
     class Meta:
         model = Classes
-        fields = ('id', 'name', 'start_time', 'enrolled')
+        fields = ('id', 'name', 'start_time', 'enrolled', 'capacity', 'curr_enrolled')
 
 

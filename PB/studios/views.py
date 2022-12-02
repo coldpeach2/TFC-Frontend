@@ -109,34 +109,10 @@ class EnrolUserView(RetrieveAPIView):
                 return class_to_enrol
             else:
                 print("Class full")
-                RaiseException()
+                return class_to_enrol
         else:
             print('Must be subscribed')
             return class_to_enrol
-
-    # def update(self):
-    #     serializer = self.serializer_class()
-    #     if serializer.is_valid():
-    #         self.perform_update()
-    #     class_id = self.kwargs.get("class_id")
-    #     class_obj = Classes.objects.get(id=class_id)
-    #     user = self.request.user
-    #     try:
-    #         subscription = UserSubscription.objects.get(user=user)
-    #         is_active = getattr(subscription, 'active')
-    #     except:
-    #         print("Must be subscribed")
-    #         return
-    #
-    #     if len(class_obj.enrolled) + 1 <= class_obj.capacity:
-    #
-    #         class_obj.enrolled.add(user)
-    #         class_obj._curr_enrolled += 1
-    #         print("Enrolled")
-    #         return
-    #     else:
-    #         print("Class full")
-    #         return
 
 
 class UserScheduleView(ListAPIView):
@@ -149,10 +125,8 @@ class UserScheduleView(ListAPIView):
         user_classes = []
 
         for class_obj in Classes.objects.all():
-            try:
-                user_classes.append(class_obj.enrolled.get(users=user))
-            except:
-                continue
+            if user in class_obj.enrolled.all():
+                user_classes.append(class_obj)
 
         return user_classes
 
