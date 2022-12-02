@@ -94,14 +94,14 @@ class EnrolUserView(RetrieveUpdateAPIView):
     # serializer_class = ClassSearchSerializer
 
     def get_queryset(self):
-        studio_id = self.kwargs.get("id")
+        studio_id = self.kwargs.get("studio_id")
         studio = get_object_or_404(Studio, studios_classes=studio_id)
         queryset = Classes.objects.filter(studio=studio).order_by('times')
         return queryset
 
     def get_object(self):
-        name = ... ###please help
-        class_obj = Classes.objects.get(name=name)
+        class_id = self.kwargs.get("class_id")
+        class_obj = Classes.objects.get(id=class_id)
         user = self.request.user
         subscription = UserSubscription.objects.filter(user=user)
         is_active = getattr(subscription, 'active')
