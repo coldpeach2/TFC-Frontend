@@ -1,7 +1,7 @@
 from rest_framework import serializers
-from accounts.models import User, UserSubscription, SubscriptionPlan
-from rest_framework.fields import ChoiceField
-from rest_framework.authtoken.models import Token
+from accounts.models import User, UserSubscription, SubscriptionPlan, PaymentHistory
+from datetime import datetime, timedelta
+from django.utils.dateparse import parse_datetime
 from django.contrib.auth import authenticate
 
 
@@ -51,7 +51,6 @@ class LoginSerializer(serializers.Serializer):
     password = serializers.CharField(label="password", style={'input_type': 'password'}, write_only=True)
 
     def validate(self, attrs):
-        # Take username and password from request
         email = attrs.get('email')
         password = attrs.get('password')
 
@@ -61,8 +60,6 @@ class LoginSerializer(serializers.Serializer):
                 raise serializers.ValidationError("Invalid email or password", code='authorization')
         else:
             raise serializers.ValidationError("Email and password are required", code='authorization')
-        # We have a valid user, put it in the serializer's validated_data.
-        # It will be used in the view.
         attrs['user'] = user
         return attrs
 
@@ -73,29 +70,55 @@ class SubscriptionPlanSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 class ActivateUserSubscriptionSerializer(serializers.ModelSerializer):
-    subscription_plan = ChoiceField(choices=SubscriptionPlan.PLANS)
+    subscription_plan = SubscriptionPlanSerializer()
     class Meta:
         model = UserSubscription
         fields = ('subscription_plan', 'card_info')
-
+        
+    # def validate(self, attrs):
+    #     if self.context['request'].method == 'PUT':
+    #         return attrs
+    #     else:
+    #         user = self.context['request'].user
+    #         plan = UserSubscription.objects.filter(user=user)
+    #         if plan.exists():
+    #             raise serializers.ValidationError("You already have an active subscription!")
+    #     return attrs
+        
     def create(self, validated_data): 
-        #sub_plan = SubscriptionPlan(subscription_choices=self.validated_data['subscription_plan'])
-        #sub_plan.save()
-        plan = UserSubscription.objects.create(user=self.context['request'].user, subscription_plan=self.context['request'].subscription_plan, card_info=validated_data['card_info'])
-        return plan
+        sub_choice = self.validated_data['subscription_plan']
+        if sub_choice['subscription_choices'] == 'Free':
+            raise serializers.ValidationError({"subscription_choices": "You already have a free account!"})
+        else:
+            sub_plan =  SubscriptionPlan.objects.create(subscription_choices = sub_choice)
+            user_subscription = UserSubscription.objects.create(user=self.context['request'].user, subscription_plan=sub_plan, card_info=validated_data['card_info'])
+            user_subscription.activate
+            self.make_first_payment(user_subscription)
+            return user_subscription
 
-        #subscription_plan = SubscriptionPlan(subscription_choices=self.validated_data['subscription_plan'])
-        #subscription_plan.save()
-        #print(self.context['request'].data.subscription_plan)
-        #subscription = UserSubscription(user=self.context['request'].user, subscription_plan=self.context['request'].subscription_plan, card_info=validated_data['card_info'])
-        #subscription.save()
-        #return subscription
+    def make_first_payment(self, object):
+        object.make_payment()
+        return object.amount_paid
 
+    def update(self, instance, validated_data):
+        for key, value in validated_data.items():
+            print(key, value)
+            if key == 'card_info':
+                setattr(instance, key, value)
+            if key == 'subscription_plan' and value:
+                if value['subscription_choices'] == 'Free':
+                    sub = UserSubscription.objects.filter(user=self.context['request'].user)
+                    #sub[0].subscription_choices = 'Free'
+                    return instance
+                else:
+                    new_plan = SubscriptionPlan.objects.create(subscription_choices = value['subscription_choices'])
+                    new_subscription = UserSubscription.objects.create(user=self.context['request'].user, subscription_plan=new_plan, card_info=validated_data['card_info'])
+                    new_subscription.activate
+                    self.make_first_payment(new_subscription)
+        instance.save()
+        return instance    
 
-class ActivateReadSearializer(serializers.ModelSerializer):
-    subscription_plan = serializers.ReadOnlyField(source='subscriptionplan.subscription_choices')
+class PaymentHistorySerializer(serializers.ModelSerializer):
     class Meta:
-        model = UserSubscription
-        fields = ('subscription_plan', 'card_info')
-
-    
+        model = PaymentHistory
+        fields = '__all__'

@@ -1,11 +1,11 @@
 from django.shortcuts import render
-from rest_framework.generics import RetrieveAPIView, ListAPIView, CreateAPIView, UpdateAPIView, RetrieveUpdateAPIView
+from rest_framework.generics import RetrieveAPIView, RetrieveUpdateDestroyAPIView, CreateAPIView, UpdateAPIView, RetrieveUpdateAPIView, ListAPIView
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.authentication import TokenAuthentication
-from accounts.serializers import RegistrationSerializer, ProfileViewSerializer, LoginSerializer, ProfileUpdateSerializer, ActivateUserSubscriptionSerializer, SubscriptionPlanSerializer, ActivateReadSearializer
+from accounts.serializers import RegistrationSerializer, ProfileViewSerializer, LoginSerializer, ProfileUpdateSerializer, ActivateUserSubscriptionSerializer, PaymentHistorySerializer
 from django.shortcuts import get_object_or_404
-from accounts.models import User, UserSubscription, Subscription, SubscriptionPlan
+from accounts.models import User, UserSubscription, PaymentHistory
 from rest_framework.response import Response
 from rest_framework.request import Request
 from rest_framework import status, permissions
@@ -21,13 +21,6 @@ from accounts.permissions import IsCreationOrIsAuthenticated
 from rest_framework.authtoken.models import Token
 
 # Create your views here.
-""" class ProfileView(viewsets.ModelViewSet):
-    def retrieve(self):
-        user = User.objects.get(email=self.request.user)
-        return user
-
-
- """
 class ProfileView(RetrieveAPIView):
     serializer_class = ProfileViewSerializer
     permission_classes = [IsAuthenticated]
@@ -40,6 +33,13 @@ class ProfileView(RetrieveAPIView):
 class ProfileUpdateView(UpdateAPIView):
     serializer_class = ProfileUpdateSerializer
     permission_classes = [IsAuthenticated]
+    queryset = User.objects.all()
+    
+    def get_object(self):
+        queryset = self.get_queryset()
+        obj = get_object_or_404(queryset, user=self.request.user)
+        return obj
+
     def update(self, request, *args, **kwargs):
         data = request.data
         serializer = ProfileViewSerializer(self.get_object(), data=data, partial=True)
@@ -53,10 +53,6 @@ class RegisterUserView(CreateAPIView):
     queryset = User.objects.all()
     serializer_class = RegistrationSerializer
     permission_classes = (permissions.AllowAny,)
-    #authentication_classes = (TokenAuthentication,)
-    #permission_classes = (IsCreationOrIsAuthenticated,)
-    #Token.objects.create(user=user)
-
 
 class LoginView(APIView):
     permission_classes = (permissions.AllowAny,)
@@ -72,17 +68,8 @@ class LoginView(APIView):
 
 class LogoutView(APIView):
     permission_classes = [IsAuthenticated]
-    # def get(self, request):
-    #     user = self.request.user
-        
-    #     get_object_or_404(Token, user=self.request.user).delete()
-    #     return Response(status=status.HTTP_202_ACCEPTED) 
-    
-    # def post(self, request):
-    #     return self.logout(request)
 
     def get(self, request, format=None):
-        # simply delete the token to force a login
         request.user.auth_token.delete()
         return Response(status=status.HTTP_200_OK)
 
@@ -93,42 +80,40 @@ class ActivateUserSubscriptionView(CreateAPIView):
     model = UserSubscription
 
     def perform_create(self, serializer):
-        print(self.request.data)
-        print(serializer)
-        #print(self.serializer_class.data)
-        #subscription_choice = SubscriptionPlan(subscription_choices=self.request.data['subscription_plan'])
-        #choice = serializer.save(user=self.request.user)
-        #print(choice)
-        #choice.subscription_plan = subscription_choice
-        #print(choice)
-        #choice.save()
-        #print(subscription_choice)
-        #subscription_serializer = SubscriptionPlanSerializer(data=subscription_choice)
-        #print(subscription_serializer, subscription_plan=subscription_choice)
-
-        #selected_choice = self.request.data['subscription_plan']
-        #subscription_plan = SubscriptionPlan.objects.create(subscription_choices=selected_choice)
-        #print(subscription_plan)
-        # subscription_serializer = SubscriptionPlanSerializer(data=subscription_plan)
-        # print(subscription_serializer)
-        # print(self.request.user)
-        #sub_plan = self.request.data['subscription_plan']
-        #plan = SubscriptionPlan.objects.create(subscription_choices = sub_plan)
-        #plan_serializer = ActivateReadSearializer(instance=plan)
-        #serializer.subscription_plan = plan
-        #print(plan_serializer)
-        #plan_serializer.save()
-        serializer.save()
-        #serializer.save(user=self.request.user, subscription_plan=plan)
-
+        serializer.is_valid(raise_exception=True)
+        serializer.save(user = self.request.user)
 
 
 class UserSubscriptionView(RetrieveUpdateAPIView):
     permission_classes = [IsAuthenticated]
 
 
+class UpdateAccountView(RetrieveUpdateDestroyAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = ActivateUserSubscriptionSerializer
+    queryset = UserSubscription.objects.all()
+    
+    def get_object(self):
+        queryset = self.get_queryset()
+        obj = get_object_or_404(queryset, user=self.request.user)
+        return obj
 
-""" As a user, I can enrol/drop a class (either one instance or all future occurrences) 
-that has not started yet and has not reached its capacity. 
-This can only happen if I have an active subscription.
-As a user, I want to see my class schedule and history in chronological order """ 
+    def update(self, request, *args, **kwargs):
+        data = request.data
+        serializer = ActivateUserSubscriptionSerializer(self.get_object(), data=data, partial=True, context={'request':request})
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer)
+        instance = serializer.instance
+        return Response(ActivateUserSubscriptionSerializer(instance=instance).data, status=status.HTTP_200_OK)
+
+class PaymentHistoryView(ListAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = PaymentHistorySerializer
+
+    def get_queryset(self):
+        user = self.request.user
+        user_subscription = UserSubscription.objects.get(user=user)
+        print(user_subscription.id)
+        payments = PaymentHistory.objects.filter(user_id=user_subscription.id)
+        print(payments.values())
+        return payments

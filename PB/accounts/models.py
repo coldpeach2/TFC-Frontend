@@ -2,6 +2,9 @@ from datetime import timezone
 from django.db import models
 from django.contrib.auth.models import AbstractUser, BaseUserManager
 from django.contrib.gis.geos import Point
+import datetime
+from datetime import timedelta
+from django.utils.dateparse import parse_datetime
 # Create your models here.
 
 class UserManager(BaseUserManager):
@@ -44,33 +47,71 @@ class User(AbstractUser):
 
 class SubscriptionPlan(models.Model):
     
-    PLANS = {('Free', 'Free'), 
+    PLANS = { 
+    ('Free', 'Free'),
     ('14.99/month', '14.99/month'), 
     ('149.99/year', '149.99/year')
     }
 
     subscription_choices = models.CharField(max_length=120, choices=PLANS, default='Free')
-    start_date = models.DateTimeField(auto_now_add=False, null=True)
-
+    
 class UserSubscription(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='users_subscription')
     card_info = models.IntegerField(null=True)
     subscription_plan = models.ForeignKey('SubscriptionPlan', on_delete=models.CASCADE, null=True)
-    amount_paid = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
-    #active = models.BooleanField(default=False)
-    #start_date = models.DateTimeField(auto_now_add=False)
-    #amount_paid = models.IntegerField(default=0)
+    _amount_paid = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
+    active = models.BooleanField(default=False)
+    start_date = models.DateTimeField(auto_now_add=False, null=True)
+    _next_payment = models.DateTimeField(auto_now_add=False, null=True)
 
     @property
-    def is_active(self):
-        return self.active
+    def activate(self):
+        self.active = True
+        self.start_date = datetime.datetime.now()
+        self.save(update_fields=['active', 'start_date'])
+        return self.start_date 
 
-    # def activate_subscription(self):
-    #     self.active = True
-    #     self.start_date = timezone.now()
+    def make_payment(self):
+        field_value = getattr(self, 'subscription_plan')
+        sub = getattr(field_value, 'subscription_choices')
+        sub_plan = sub['subscription_choices']
+        date_str = getattr(self, 'start_date')
+        date_started = parse_datetime(str(date_str))
+        if sub_plan == '14.99/month':
+            price = 14.99
+            frequency = 30
+            self._amount_paid = self.amount_paid + price
+        else: 
+            price = 149.99
+            frequency = 365
+            self._amount_paid = self.amount_paid + price
+        self._next_payment = date_started + timedelta(days=frequency)
+        paid = getattr(self, '_amount_paid')
+        next_pay = getattr(self, '_next_payment')
+        PaymentHistory.objects.create(user=self, amount=paid, next_payment=next_pay)
+        return self.next_payment
+            
+    @property
+    def amount_paid(self):
+        self.save(update_fields=['_amount_paid'])
+        return self._amount_paid
 
-class Subscription(models.Model):
-    user_subscription = models.ForeignKey(UserSubscription, on_delete=models.CASCADE)
-    active = models.BooleanField(default=True)
+    @property
+    def next_payment(self):
+        self.save(update_fields=['_next_payment'])
+        return self._next_payment
 
+class PaymentHistory(models.Model):
+    user = models.ForeignKey(UserSubscription, on_delete=models.CASCADE, related_name='usersubscriptions_paymenthistory')
+    payment_date = models.DateTimeField(auto_now_add=True, null=False)
+    amount = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
+    next_payment = models.CharField(max_length=120, null=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields = ['payment_date', 'amount'],
+                name = 'together'
+                )
+            ]
     

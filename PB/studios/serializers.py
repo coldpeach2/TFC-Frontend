@@ -80,5 +80,5 @@ class StudioSearchSerializer(serializers.ModelSerializer):
 
 class ClassSearchSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Studio
+        model = Classes
         fields = '__all__'
