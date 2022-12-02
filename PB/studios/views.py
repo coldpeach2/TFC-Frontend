@@ -8,7 +8,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework import generics, status
 from .serializers import ClassScheduleSerializer, StudiosForUserSerializer, StudioSearchSerializer, \
-    ClassSearchSerializer
+    ClassSearchSerializer, ClassEnrolSerializer
 from django.shortcuts import get_object_or_404
 from django.contrib.gis.geos import Point
 from rest_framework import filters
@@ -58,7 +58,7 @@ class StudioClassScheduleView(ListAPIView):
     def get_queryset(self):
         studio_id = self.kwargs.get("id")
         studio = get_object_or_404(Studio, studios_classes=studio_id)
-        queryset = Classes.objects.filter(studio=studio).order_by('times')
+        queryset = Classes.objects.filter(studio=studio).order_by('start_time')
         #print(queryset.values())
         return queryset.values()
 
@@ -87,33 +87,40 @@ class UserClassSearch(generics.ListCreateAPIView):
     serializer_class = ClassSearchSerializer
 
 
-class EnrolUserView(RetrieveUpdateAPIView):
+class EnrolUserView(ListAPIView):
     permission_classes = [IsAuthenticated]
     # search_fields = ['name', 'coach', 'start_date', 'start_time', 'end_time']
     # filter_backends = (filters.SearchFilter,)
-    # serializer_class = ClassSearchSerializer
+    serializer_class = ClassEnrolSerializer
 
     def get_queryset(self):
         studio_id = self.kwargs.get("studio_id")
         studio = get_object_or_404(Studio, studios_classes=studio_id)
-        queryset = Classes.objects.filter(studio=studio).order_by('times')
+        queryset = Classes.objects.filter(studio=studio).order_by('start_time')
         return queryset
 
-    def get_object(self):
+    def patch(self):
         class_id = self.kwargs.get("class_id")
         class_obj = Classes.objects.get(id=class_id)
         user = self.request.user
-        subscription = UserSubscription.objects.filter(user=user)
-        is_active = getattr(subscription, 'active')
+        try:
+            subscription = UserSubscription.objects.get(user=user)
+            is_active = getattr(subscription, 'active')
+        except:
+            print("Must be subscribed")
+            return
 
         if class_obj.enrolled + 1 <= class_obj.capacity:
             if is_active:
                 class_obj.enrolled.add(user)
-                return "Enrolled"
+                print("Enrolled")
+                return
             else:
-                return "Must be subscribed"
+                print("Must be subscribed")
+                return
         else:
-            return "Class full"
+            print("Class full")
+            return
 
 
 class UserScheduleView(ListAPIView):
@@ -122,11 +129,14 @@ class UserScheduleView(ListAPIView):
 
     def get_queryset(self):
         user = self.request.user
+        print(user)
         user_classes = []
 
         for class_obj in Classes.objects.all():
-            if class_obj.enrolled.filter(user) is not None:
-                user_classes.append(class_obj)
+            try:
+                user_classes.append(class_obj.enrolled.get(users=user))
+            except:
+                continue
 
         return user_classes
 

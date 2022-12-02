@@ -69,7 +69,7 @@ class StudiosForUserSerializer(serializers.ModelSerializer):
 class ClassScheduleSerializer(serializers.ModelSerializer):
     class Meta:
         model = Classes
-        fields = ('id', 'name', 'description', 'coach', 'keywords', 'capacity', 'times')
+        fields = ('id', 'name', 'description', 'coach', 'keywords', 'capacity', 'start_time', 'end_time')
 
 
 class StudioSearchSerializer(serializers.ModelSerializer):
@@ -82,4 +82,10 @@ class ClassSearchSerializer(serializers.ModelSerializer):
     class Meta:
         model = Classes
         fields = '__all__'
+
+
+class ClassEnrolSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Classes
+        fields = ('name', 'start_time')
 

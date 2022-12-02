@@ -52,11 +52,11 @@ class Classes(models.Model):
     keywords = models.CharField(max_length=120)
     capacity = models.PositiveIntegerField()
     frequency = models.IntegerField(choices=FREQUENCY, null=True)
-    start_date = models.DateTimeField(auto_now_add=False, null=True)
+    start_date = models.DateField(auto_now_add=False, null=True)
     start_time = models.CharField(max_length=120, null=True)
     end_time = models.CharField(max_length=120, null=True)
-    cancelled_date = models.DateTimeField(auto_now_add=False, null=True)
-    enrolled = models.ManyToManyField(User)
+    cancelled_date = models.DateTimeField(auto_now_add=False, null=True, blank=True)
+    enrolled = models.ManyToManyField(User, related_name='users', blank=True)
 
     @property
     def is_cancelled(self):
