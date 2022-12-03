@@ -1,5 +1,6 @@
 from django.shortcuts import render
 from django.views import generic
+from rest_framework.exceptions import ValidationError
 from rest_framework.generics import CreateAPIView, ListAPIView, RetrieveUpdateAPIView, ListCreateAPIView, \
     RetrieveAPIView
 from .models import Studio, Amenity, Classes
@@ -90,6 +91,7 @@ class UserClassSearch(generics.ListAPIView):
 
 class EnrolUserView(RetrieveAPIView):
     permission_classes = [IsAuthenticated]
+    queryset = Classes.objects.all()
     # search_fields = ['name', 'coach', 'start_date', 'start_time', 'end_time']
     # filter_backends = (filters.SearchFilter,)
     serializer_class = ClassEnrolSerializer
@@ -101,18 +103,15 @@ class EnrolUserView(RetrieveAPIView):
         if UserSubscription.objects.get(user=user) is not None and getattr(UserSubscription.objects.get(user=user),
                                                                            'active') is True:
             if user in class_to_enrol.enrolled.all():
-                print("Already Enrolled")
-                return class_to_enrol
+                raise ValidationError("Already Enrolled")
             elif class_to_enrol.capacity >= class_to_enrol.curr_enrolled + 1:
                 Classes.objects.filter(id=class_id).update(curr_enrolled=class_to_enrol.curr_enrolled + 1)
                 class_to_enrol.enrolled.add(user)
                 return class_to_enrol
             else:
-                print("Class full")
-                return class_to_enrol
+                raise ValidationError("Class full")
         else:
-            print('Must be subscribed')
-            return class_to_enrol
+            raise ValidationError("Must be subscribed")
 
 
 class UserScheduleView(ListAPIView):
