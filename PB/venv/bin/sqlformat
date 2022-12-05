@@ -1,4 +1,4 @@
-#!/Users/areej/CSC309-Fall2022/group_9543/PB/venv/bin/python
+#!/Users/areej/CSC309-Fall2022/group_9543/PB/venv/bin/python3
 # -*- coding: utf-8 -*-
 import re
 import sys
