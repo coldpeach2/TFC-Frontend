@@ -40,10 +40,12 @@ INSTALLED_APPS = [
     'rest_framework.authtoken',
     'accounts',
     'studios',
+    'corsheaders',
 ]
 SITE_ID = 1
 
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -87,7 +89,10 @@ DATABASES = {
     #     'NAME': 'location_data'
     # }
 }
-
+CORS_ORIGIN_WHITELIST = ['http://localhost:3000']
+CSRF_TRUSTED_ORIGINS = ['http://localhost:3000']
+CORS_ALLOWED_ORIGINS = ['http://localhost:3000']
+ALLOWED_HOSTS = ['localhost', '127.0.0.1', 'http://127.0.0.1:8000']
 
 # Password validation
 # https://docs.djangoproject.com/en/4.1/ref/settings/#auth-password-validators
