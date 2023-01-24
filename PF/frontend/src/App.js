@@ -1,12 +1,12 @@
 import './App.css';
 import Router from './Routers';
-import Register from './components/Register';
+
 
 
 function App() {
   return (
     <div className="App">
-      <Register />
+      <Router />
     </div>
   );
 }
