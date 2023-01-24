@@ -52,6 +52,7 @@ class RegisterUserView(CreateAPIView):
     queryset = User.objects.all()
     serializer_class = RegistrationSerializer
     permission_classes = (permissions.AllowAny,)
+    authentication_classes = []
 
 class LoginView(APIView):
     permission_classes = (permissions.AllowAny,)
@@ -64,13 +65,14 @@ class LoginView(APIView):
         user = serializer.validated_data['user']
         login(request, user)
         token, created = Token.objects.get_or_create(user=user)
+        print(token)
         return Response({"token": token.key}, status=status.HTTP_202_ACCEPTED)
 
 class LogoutView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request, format=None):
-        request.user.auth_token.delete()
+        Token.objects.filter(user=request.user).delete()
         return Response(status=status.HTTP_200_OK)
 
 
