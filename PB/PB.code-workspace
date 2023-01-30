@@ -1,0 +1,11 @@
+{
+	"folders": [
+		{
+			"path": "."
+		}
+	],
+	"settings": {
+		"python.terminal.activateEnvInCurrentTerminal": true,
+		"python.defaultInterpreterPath": "/Users/areej/CSC309-Fall2022/group_9543/PB/venv/bin/python3",
+	}
+}
